@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {
+      "source": "/((?!assets/|_next/).*)",
+      "destination": "/api/index"
+    }
+  ],
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs20.x"
+    }
+  }
+}
