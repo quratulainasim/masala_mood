@@ -1,0 +1,22 @@
+
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/aloo_tikki.webp' WHERE name = 'Aloo Tikki';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/broast.jpg' WHERE name = 'Broast Chicken (4 pcs)';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/chapli_kebab.jpg' WHERE name = 'Chapli Kebab';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/chicken_biryani.jpg' WHERE name = 'Chicken Biryani';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/chicken_karahi.jpg' WHERE name = 'Chicken Karahi';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/chicken_shawarma.jpg' WHERE name = 'Chicken Shawarma';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/chicken_tikka.jpg' WHERE name = 'Chicken Tikka';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/dahi_bhalla.jpg' WHERE name = 'Dahi Bhalla';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/doodh_patti.jpg' WHERE name = 'Doodh Patti Chai';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/golgappa.jpg' WHERE name = 'Gol Gappa (12 pcs)';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/haleem.jpg' WHERE name = 'Haleem';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/loaded_fries.jpg' WHERE name = 'Loaded Fries';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/malai_boti.jpg' WHERE name = 'Malai Boti';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/mango_lassi.jpg' WHERE name = 'Mango Lassi';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/mutton_biryani.jpg' WHERE name = 'Mutton Biryani';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/mutton_qorma.jpg' WHERE name = 'Mutton Qorma';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/nehari.jpg' WHERE name = 'Nihari';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/rooh_afza.webp' WHERE name = 'Rooh Afza';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/samosa_chaat.jpg' WHERE name = 'Samosa Chaat';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/sekh_kaba.jpg' WHERE name = 'Seekh Kebab';
+UPDATE menu_items SET image_url = 'https://rrhaxnqbkjslleucczkl.supabase.co/storage/v1/object/public/food-images/zinger_burger.avif' WHERE name = 'Zinger Burger';
