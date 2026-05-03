@@ -1,8 +1,7 @@
 {
-  "rewrites": [
-    {
-      "source": "/((?!assets/|_next/).*)",
-      "destination": "/api/index"
-    }
-  ]
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev"
 }
+
