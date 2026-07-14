@@ -31,29 +31,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+    let subscription: any = null;
+    try {
+      const authRes = supabase.auth.onAuthStateChange(
+        async (_event, session) => {
+          setSession(session);
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            await checkAdmin(session.user.id).catch((e) => console.warn("Check admin error:", e));
+          } else {
+            setIsAdmin(false);
+          }
+          setLoading(false);
+        }
+      );
+      subscription = authRes?.data?.subscription;
+    } catch (e) {
+      console.warn("Failed to subscribe to auth state changes:", e);
+      setLoading(false);
+    }
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
         setSession(session);
         setUser(session?.user ?? null);
         if (session?.user) {
-          await checkAdmin(session.user.id);
-        } else {
-          setIsAdmin(false);
+          checkAdmin(session.user.id).catch((e) => console.warn("Check admin error:", e));
         }
+      })
+      .catch((err) => {
+        console.warn("Failed to get session from Supabase:", err);
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    );
+      });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkAdmin(session.user.id);
+    return () => {
+      if (subscription && typeof subscription.unsubscribe === "function") {
+        subscription.unsubscribe();
       }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {

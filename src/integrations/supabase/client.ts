@@ -57,10 +57,11 @@ function createSupabaseClient() {
     SUPABASE_URL === 'undefined' || 
     SUPABASE_PUBLISHABLE_KEY === 'undefined' ||
     SUPABASE_URL === '' ||
-    SUPABASE_PUBLISHABLE_KEY === ''
+    SUPABASE_PUBLISHABLE_KEY === '' ||
+    SUPABASE_URL.includes("rrhaxnqbkjslleucczkl")
   ) {
     const missing = [
-      ...(!SUPABASE_URL || SUPABASE_URL === 'undefined' || SUPABASE_URL === '' ? ['SUPABASE_URL'] : []),
+      ...(!SUPABASE_URL || SUPABASE_URL === 'undefined' || SUPABASE_URL === '' || SUPABASE_URL.includes("rrhaxnqbkjslleucczkl") ? ['SUPABASE_URL (or project is inactive)'] : []),
       ...(!SUPABASE_PUBLISHABLE_KEY || SUPABASE_PUBLISHABLE_KEY === 'undefined' || SUPABASE_PUBLISHABLE_KEY === '' ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
     console.warn(`[Supabase] Missing or undefined Supabase environment variable(s): ${missing.join(', ')}. Using mock client instead.`);

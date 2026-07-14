@@ -34,9 +34,16 @@ function DeliveryPage() {
     let channel: any = null;
     const fetchMenu = async () => {
       try {
-        const [{ data: items }, { data: cats }] = await Promise.all([
+        const fetchPromise = Promise.all([
           supabase.from("menu_items").select("*").eq("is_available", true).order("sort_order"),
           supabase.from("categories").select("*").order("sort_order"),
+        ]);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Supabase fetch timeout")), 2500)
+        );
+        const [{ data: items }, { data: cats }] = await Promise.race([
+          fetchPromise,
+          timeoutPromise,
         ]);
         if (!items || !cats) {
           throw new Error("No data returned from Supabase");

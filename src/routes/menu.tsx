@@ -32,9 +32,16 @@ function MenuPage() {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const [{ data: menuData }, { data: catData }] = await Promise.all([
+        const fetchPromise = Promise.all([
           supabase.from("menu_items").select("*").eq("is_available", true).order("sort_order"),
           supabase.from("categories").select("*").order("sort_order"),
+        ]);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Supabase fetch timeout")), 2500)
+        );
+        const [{ data: menuData }, { data: catData }] = await Promise.race([
+          fetchPromise,
+          timeoutPromise,
         ]);
         if (!menuData || !catData) {
           throw new Error("No data returned from Supabase");
