@@ -4,10 +4,12 @@ import { ShoppingCart, Plus, Minus, Truck, Clock, Tag, Search } from "lucide-rea
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
 import { useLang } from "@/lib/language";
+import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { MOCK_CATEGORIES, MOCK_MENU_ITEMS, type MockCategory, type MockMenuItem } from "@/lib/mockData";
 
-type MenuItem = Tables<"menu_items">;
-type Category = Tables<"categories">;
+type MenuItem = Tables<"menu_items"> | MockMenuItem;
+type Category = Tables<"categories"> | MockCategory;
 
 export const Route = createFileRoute("/delivery")({
   head: () => ({
@@ -29,21 +31,37 @@ function DeliveryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let channel: any = null;
     const fetchMenu = async () => {
-      const [{ data: items }, { data: cats }] = await Promise.all([
-        supabase.from("menu_items").select("*").eq("is_available", true).order("sort_order"),
-        supabase.from("categories").select("*").order("sort_order"),
-      ]);
-      setMenuItems(items || []);
-      setCategories(cats || []);
-      setLoading(false);
+      try {
+        const [{ data: items }, { data: cats }] = await Promise.all([
+          supabase.from("menu_items").select("*").eq("is_available", true).order("sort_order"),
+          supabase.from("categories").select("*").order("sort_order"),
+        ]);
+        if (!items || !cats) {
+          throw new Error("No data returned from Supabase");
+        }
+        setMenuItems(items || []);
+        setCategories(cats || []);
+
+        channel = supabase.channel("delivery-menu").on("postgres_changes", { event: "*", schema: "public", table: "menu_items" }, () => {
+          supabase.from("menu_items").select("*").eq("is_available", true).order("sort_order").then(({ data }) => setMenuItems(data || []));
+        }).subscribe();
+      } catch (err) {
+        console.warn("Supabase fetch failed on delivery, falling back to mock data:", err);
+        setMenuItems(MOCK_MENU_ITEMS);
+        setCategories(MOCK_CATEGORIES);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchMenu();
 
-    const channel = supabase.channel("delivery-menu").on("postgres_changes", { event: "*", schema: "public", table: "menu_items" }, () => {
-      supabase.from("menu_items").select("*").eq("is_available", true).order("sort_order").then(({ data }) => setMenuItems(data || []));
-    }).subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   const filtered = menuItems.filter((i) => {
@@ -113,13 +131,19 @@ function DeliveryPage() {
                     <div className="flex items-center gap-2 shrink-0">
                       {qty > 0 && (
                         <>
-                          <button onClick={() => updateQuantity(item.id, qty - 1)} className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-foreground hover:bg-accent transition-colors">
+                          <button onClick={() => {
+                            updateQuantity(item.id, qty - 1);
+                            toast.error(`${t(item.name, item.name_ur)} ${t("removed from cart", "ٹوکری سے نکال دیا گیا")}`);
+                          }} className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-foreground hover:bg-accent transition-colors">
                             <Minus className="w-4 h-4" />
                           </button>
                           <span className="w-8 text-center font-semibold text-foreground">{qty}</span>
                         </>
                       )}
-                      <button onClick={() => addItem({ id: item.id, name: item.name, name_ur: item.name_ur, price: item.price, image_url: item.image_url || "" })} className="w-9 h-9 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground hover:opacity-90 transition-opacity">
+                      <button onClick={() => {
+                        addItem({ id: item.id, name: item.name, name_ur: item.name_ur, price: Number(item.price), image_url: item.image_url || "" });
+                        toast.success(`${t(item.name, item.name_ur)} ${t("added to cart", "ٹوکری میں شامل کر دیا گیا")}`);
+                      }} className="w-9 h-9 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground hover:opacity-90 transition-opacity">
                         <Plus className="w-4 h-4" />
                       </button>
                     </div>

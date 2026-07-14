@@ -2,6 +2,47 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
+function createMockSupabaseClient() {
+  const dummyChain = () => {
+    const chain: any = {
+      select: () => chain,
+      insert: () => Promise.resolve({ data: null, error: null }),
+      update: () => chain,
+      delete: () => chain,
+      eq: () => chain,
+      order: () => chain,
+      limit: () => chain,
+      maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      then: (onfulfilled: any) => Promise.resolve({ data: null, error: null }).then(onfulfilled),
+    };
+    return chain;
+  };
+
+  const mockClient: any = {
+    auth: {
+      onAuthStateChange: (callback: any) => {
+        setTimeout(() => callback("INITIAL_SESSION", null), 0);
+        return { data: { subscription: { unsubscribe: () => {} } } };
+      },
+      getSession: () => Promise.resolve({ data: { session: null } }),
+      signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+      signUp: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+      signOut: () => Promise.resolve({ error: null }),
+    },
+    from: () => dummyChain(),
+    channel: () => {
+      const channel: any = {
+        on: () => channel,
+        subscribe: () => channel,
+      };
+      return channel;
+    },
+    removeChannel: () => Promise.resolve(),
+  };
+
+  return mockClient;
+}
+
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
@@ -13,9 +54,8 @@ function createSupabaseClient() {
       ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
       ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+    console.warn(`[Supabase] Missing Supabase environment variable(s): ${missing.join(', ')}. Using mock client instead.`);
+    return createMockSupabaseClient() as ReturnType<typeof createClient<Database>>;
   }
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -37,4 +77,5 @@ export const supabase = new Proxy({} as ReturnType<typeof createSupabaseClient>,
     return Reflect.get(_supabase, prop, receiver);
   },
 });
+
 

@@ -3,11 +3,13 @@ import { useState, useEffect } from "react";
 import { useLang } from "@/lib/language";
 import { supabase } from "@/integrations/supabase/client";
 import { useCart } from "@/hooks/useCart";
-import { Plus } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
+import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { MOCK_CATEGORIES, MOCK_MENU_ITEMS, type MockCategory, type MockMenuItem } from "@/lib/mockData";
 
-type MenuItem = Tables<"menu_items">;
-type Category = Tables<"categories">;
+type MenuItem = Tables<"menu_items"> | MockMenuItem;
+type Category = Tables<"categories"> | MockCategory;
 
 export const Route = createFileRoute("/menu")({
   head: () => ({
@@ -21,7 +23,7 @@ export const Route = createFileRoute("/menu")({
 
 function MenuPage() {
   const { t } = useLang();
-  const { addItem } = useCart();
+  const { items: cartItems, addItem, removeItem, updateQuantity } = useCart();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCat, setActiveCat] = useState("");
@@ -29,16 +31,28 @@ function MenuPage() {
 
   useEffect(() => {
     const fetch = async () => {
-      const [{ data: menuData }, { data: catData }] = await Promise.all([
-        supabase.from("menu_items").select("*").eq("is_available", true).order("sort_order"),
-        supabase.from("categories").select("*").order("sort_order"),
-      ]);
-      setItems(menuData || []);
-      setCategories(catData || []);
-      setLoading(false);
+      try {
+        const [{ data: menuData }, { data: catData }] = await Promise.all([
+          supabase.from("menu_items").select("*").eq("is_available", true).order("sort_order"),
+          supabase.from("categories").select("*").order("sort_order"),
+        ]);
+        if (!menuData || !catData) {
+          throw new Error("No data returned from Supabase");
+        }
+        setItems(menuData || []);
+        setCategories(catData || []);
+      } catch (err) {
+        console.warn("Supabase fetch failed, falling back to mock data:", err);
+        setItems(MOCK_MENU_ITEMS);
+        setCategories(MOCK_CATEGORIES);
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, []);
+
+  const getCartQty = (id: string) => cartItems.find((c) => c.id === id)?.quantity || 0;
 
   const grouped = categories.map((cat) => ({
     ...cat,
@@ -90,9 +104,25 @@ function MenuPage() {
                         {item.description && <p className="text-muted-foreground text-sm mt-1 line-clamp-2">{t(item.description, item.description_ur || "")}</p>}
                         <div className="flex items-center justify-between mt-4">
                           <span className="text-gradient-gold font-bold text-xl">Rs. {item.price}</span>
-                          <button onClick={() => addItem({ id: item.id, name: item.name, name_ur: item.name_ur, price: item.price, image_url: item.image_url || "" })} className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground hover:opacity-90 transition-opacity">
-                            <Plus className="w-5 h-5" />
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {getCartQty(item.id) > 0 && (
+                              <>
+                                <button onClick={() => {
+                                  updateQuantity(item.id, getCartQty(item.id) - 1);
+                                  toast.error(`${t(item.name, item.name_ur)} ${t("removed from cart", "ٹوکری سے نکال دیا گیا")}`);
+                                }} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-foreground hover:bg-accent transition-colors">
+                                  <Minus className="w-4 h-4" />
+                                </button>
+                                <span className="w-6 text-center font-semibold text-foreground text-sm">{getCartQty(item.id)}</span>
+                              </>
+                            )}
+                            <button onClick={() => {
+                              addItem({ id: item.id, name: item.name, name_ur: item.name_ur, price: Number(item.price), image_url: item.image_url || "" });
+                              toast.success(`${t(item.name, item.name_ur)} ${t("added to cart", "ٹوکری میں شامل کر دیا گیا")}`);
+                            }} className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground hover:opacity-90 transition-opacity">
+                              <Plus className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
