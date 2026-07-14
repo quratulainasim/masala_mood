@@ -14,6 +14,8 @@ function createMockSupabaseClient() {
       limit: () => chain,
       maybeSingle: () => Promise.resolve({ data: null, error: null }),
       then: (onfulfilled: any) => Promise.resolve({ data: null, error: null }).then(onfulfilled),
+      catch: (onrejected: any) => Promise.resolve({ data: null, error: null }).catch(onrejected),
+      finally: (onfinally: any) => Promise.resolve({ data: null, error: null }).finally(onfinally),
     };
     return chain;
   };
@@ -49,22 +51,34 @@ function createSupabaseClient() {
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
   const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
 
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  if (
+    !SUPABASE_URL || 
+    !SUPABASE_PUBLISHABLE_KEY || 
+    SUPABASE_URL === 'undefined' || 
+    SUPABASE_PUBLISHABLE_KEY === 'undefined' ||
+    SUPABASE_URL === '' ||
+    SUPABASE_PUBLISHABLE_KEY === ''
+  ) {
     const missing = [
-      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
+      ...(!SUPABASE_URL || SUPABASE_URL === 'undefined' || SUPABASE_URL === '' ? ['SUPABASE_URL'] : []),
+      ...(!SUPABASE_PUBLISHABLE_KEY || SUPABASE_PUBLISHABLE_KEY === 'undefined' || SUPABASE_PUBLISHABLE_KEY === '' ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
     ];
-    console.warn(`[Supabase] Missing Supabase environment variable(s): ${missing.join(', ')}. Using mock client instead.`);
+    console.warn(`[Supabase] Missing or undefined Supabase environment variable(s): ${missing.join(', ')}. Using mock client instead.`);
     return createMockSupabaseClient() as ReturnType<typeof createClient<Database>>;
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    auth: {
-      storage: typeof window !== 'undefined' ? localStorage : undefined,
-      persistSession: true,
-      autoRefreshToken: true,
-    }
-  });
+  try {
+    return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: {
+        storage: typeof window !== 'undefined' ? localStorage : undefined,
+        persistSession: true,
+        autoRefreshToken: true,
+      }
+    });
+  } catch (err) {
+    console.error("[Supabase] Failed to initialize Supabase client. Falling back to mock client.", err);
+    return createMockSupabaseClient() as ReturnType<typeof createClient<Database>>;
+  }
 }
 
 let _supabase: ReturnType<typeof createSupabaseClient> | undefined;
